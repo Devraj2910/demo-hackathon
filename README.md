@@ -1,58 +1,83 @@
-# Health Check Service
+# PostgreSQL API with Clean Architecture
 
-A simple TypeScript project with a health check endpoint built using Clean Architecture principles.
+This API provides endpoints to interact with a PostgreSQL database, built using Clean Architecture principles.
 
-## Project Structure
+## Features
 
-The project follows Clean Architecture with the following layers:
-- Domain: Core business entities and logic
-- Application: Use cases orchestrating the domain
-- Infrastructure: Implementation of repositories and external services
-- Presentation: Controllers and routes for handling HTTP requests
+- List all databases
+- Execute custom SQL queries
 
-## Getting Started
+## Prerequisites
 
-### Prerequisites
-- Node.js (v14 or higher)
-- npm
+- Node.js (>= 14.x)
+- PostgreSQL installed and running
 
-### Installation
+## Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
+```
+PORT=3000
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=postgres
+```
+
+## Installation
 
 1. Clone the repository
 2. Install dependencies:
-```
-npm install
-```
-
-### Running the Application
-
-Development mode:
-```
-npm run dev
-```
-
-Production mode:
-```
-npm run build
-npm start
-```
+   ```
+   npm install
+   ```
+3. Start the server:
+   ```
+   npm run dev
+   ```
 
 ## API Endpoints
 
-### Health Check
+### List Databases
+
 ```
-GET /health
+GET /api/databases
 ```
 
-Response:
+Returns a list of all databases in the PostgreSQL server.
+
+### Execute Query
+
+```
+POST /api/query
+```
+
+Body:
 ```json
 {
-  "success": true,
-  "data": {
-    "status": "OK",
-    "timestamp": "2023-11-08T10:30:00.000Z",
-    "version": "1.0.0",
-    "uptime": 123
-  }
+  "query": "SELECT * FROM pg_database"
 }
+```
+
+Executes the provided SQL query and returns the results.
+
+## Clean Architecture Structure
+
+This project follows Clean Architecture principles with the following structure:
+
+```
+/src/clean-architecture/
+    /modules/
+        /database/
+            /domain/
+                /entities/       # Core business entities
+            /application/
+                /useCases/       # Application use cases
+            /infrastructure/
+                /repositories/   # Repository implementations
+            /presentation/
+                /controllers/    # HTTP controllers
+                /routes/         # API routes
+            /repositories/       # Repository interfaces
 ``` 
