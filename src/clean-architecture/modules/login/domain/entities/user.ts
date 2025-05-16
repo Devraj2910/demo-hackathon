@@ -1,0 +1,48 @@
+export interface UserProps {
+  id: string;
+  email: string;
+  passwordHash: string;
+  firstName?: string;
+  lastName?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export class User {
+  private props: UserProps;
+
+  private constructor(props: UserProps) {
+    this.props = props;
+  }
+
+  static create(props: UserProps): User {
+    return new User(props);
+  }
+
+  // Getters
+  get id(): string { return this.props.id; }
+  get email(): string { return this.props.email; }
+  get passwordHash(): string { return this.props.passwordHash; }
+  get firstName(): string | undefined { return this.props.firstName; }
+  get lastName(): string | undefined { return this.props.lastName; }
+  get createdAt(): Date { return this.props.createdAt; }
+  get updatedAt(): Date { return this.props.updatedAt; }
+
+  // Business logic methods
+  updateProfile(firstName?: string, lastName?: string): void {
+    if (firstName !== undefined) {
+      this.props.firstName = firstName;
+    }
+    
+    if (lastName !== undefined) {
+      this.props.lastName = lastName;
+    }
+    
+    this.props.updatedAt = new Date();
+  }
+
+  updatePasswordHash(passwordHash: string): void {
+    this.props.passwordHash = passwordHash;
+    this.props.updatedAt = new Date();
+  }
+} 
