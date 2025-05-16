@@ -29,9 +29,41 @@ export class DatabaseService {
 
     // Add SSL configuration if enabled
     if (sslEnabled) {
-      poolConfig.ssl = {
-        rejectUnauthorized: false // May need to be configurable in production
-      };
+      const sslMode = process.env.SSL_MODE || 'require';
+      
+      switch (sslMode) {
+        case 'disable':
+          // No SSL
+          break;
+        case 'allow':
+        case 'prefer':
+        case 'require':
+          // Simple SSL configuration
+          poolConfig.ssl = {
+            rejectUnauthorized: false
+          };
+          break;
+        case 'verify-ca':
+        case 'verify-full':
+          // More secure SSL configuration
+          poolConfig.ssl = {
+            rejectUnauthorized: true,
+            // Add CA certificate if provided
+            ca: process.env.SSL_CA ? process.env.SSL_CA : undefined,
+            // Add client certificate if provided
+            cert: process.env.SSL_CERT ? process.env.SSL_CERT : undefined,
+            // Add client key if provided
+            key: process.env.SSL_KEY ? process.env.SSL_KEY : undefined,
+          };
+          break;
+        default:
+          // Default to require
+          poolConfig.ssl = {
+            rejectUnauthorized: false
+          };
+      }
+      
+      console.log(`SSL mode: ${sslMode}`);
     }
 
     this.pool = new Pool(poolConfig);
@@ -50,6 +82,22 @@ export class DatabaseService {
       DatabaseService.instance = new DatabaseService();
     }
     return DatabaseService.instance;
+  }
+
+  /**
+   * Test database connection
+   * @returns true if connection successful, false otherwise
+   */
+  public async testConnection(): Promise<boolean> {
+    try {
+      // Execute a simple query to check connection
+      const result = await this.pool.query('SELECT NOW() as now');
+      console.log('✅ Database connection successful:', result.rows[0].now);
+      return true;
+    } catch (error) {
+      console.error('❌ Database connection failed:', error);
+      return false;
+    }
   }
 
   /**

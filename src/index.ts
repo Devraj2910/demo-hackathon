@@ -22,8 +22,14 @@ app.use('/api/database', databaseRoutes);
 app.use('/api/auth', authRoutes);
 
 // Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'OK' });
+app.get('/health', async (req: Request, res: Response) => {
+  // Check database connectivity for health check
+  const dbConnected = await dbService.testConnection();
+  
+  res.status(200).json({ 
+    status: 'OK',
+    database: dbConnected ? 'connected' : 'disconnected'
+  });
 });
 
 // 404 handler for non-existent routes
@@ -32,16 +38,34 @@ app.use(notFoundHandler);
 // Global error handling middleware
 app.use(errorHandler);
 
-// Start server
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Test database connection and start server only if successful
+async function startServer() {
+  try {
+    // Test database connection
+    const isConnected = await dbService.testConnection();
+    
+    if (!isConnected) {
+      console.error('Failed to connect to the database. Server will not start.');
+      process.exit(1);
+    }
+    
+    // Start server if database connection is successful
+    const server = app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      console.log(`Health check available at: http://localhost:${PORT}/health`);
+    });
+    
+    // Handle graceful shutdown
+    process.on('SIGTERM', () => shutdown(server));
+    process.on('SIGINT', () => shutdown(server));
+    
+  } catch (error) {
+    console.error('Error starting server:', error);
+    process.exit(1);
+  }
+}
 
-// Handle graceful shutdown
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
-
-async function shutdown() {
+async function shutdown(server: any) {
   console.log('Shutting down server...');
   server.close(async () => {
     console.log('HTTP server closed.');
@@ -55,4 +79,7 @@ async function shutdown() {
       process.exit(1);
     }
   });
-} 
+}
+
+// Start the server
+startServer(); 
