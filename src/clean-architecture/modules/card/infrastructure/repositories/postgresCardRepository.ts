@@ -50,6 +50,7 @@ export class PostgresCardRepository implements CardRepository {
     page?: number;
     limit?: number;
     title?: string;
+    searchText?: string;
   }): Promise<PaginatedResult<Card>> {
     let queryParams: any[] = [];
     let conditions: string[] = [];
@@ -86,6 +87,11 @@ export class PostgresCardRepository implements CardRepository {
     if (filters?.title) {
       conditions.push(`title = $${queryParams.length + 1}`);
       queryParams.push(filters.title);
+    }
+
+    if (filters?.searchText) {
+      conditions.push(`title ILIKE $${queryParams.length + 1} OR content ILIKE $${queryParams.length + 2}`);
+      queryParams.push(`%${filters.searchText}%`);
     }
     
     // Create WHERE clause if any conditions exist
@@ -254,6 +260,8 @@ export class PostgresCardRepository implements CardRepository {
     toDate?: Date;
     page?: number;
     limit?: number;
+    title?: string;
+    searchText?: string;
   }): Promise<PaginatedCardWithUsers> {
     // First get paginated cards
     const paginatedCards = await this.findAll(filters);

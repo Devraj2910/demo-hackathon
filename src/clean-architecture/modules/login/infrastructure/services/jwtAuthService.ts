@@ -10,7 +10,7 @@ export class JwtAuthService implements AuthService {
 
   constructor() {
     this.jwtSecret = process.env.JWT_SECRET || 'default-secret-change-in-production';
-    this.expiresIn = parseInt(process.env.JWT_EXPIRES_IN || '3600'); // Default: 1 hour
+    this.expiresIn = parseInt(process.env.JWT_EXPIRES_IN || "2592000"); // Default: 1 hour
   }
 
   async hashPassword(password: string): Promise<string> {

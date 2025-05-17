@@ -41,6 +41,8 @@ export interface CardRepository {
     toDate?: Date;
     page?: number;
     limit?: number;
+    title?: string;
+    searchText?: string;
   }): Promise<PaginatedCardWithUsers>;
   
   /**

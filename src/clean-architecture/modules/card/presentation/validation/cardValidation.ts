@@ -34,7 +34,8 @@ export const getCardsSchema = Joi.object({
     'number.min': 'Limit must be at least 1',
     'number.max': 'Limit must be at most 100'
   }),
-  title: Joi.string()
+  title: Joi.string(),
+  searchText: Joi.string()
 });
 
 export const getLatestCardsSchema = Joi.object({

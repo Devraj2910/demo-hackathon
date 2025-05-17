@@ -7,4 +7,5 @@ export interface GetCardsRequestDto {
   page?: number;
   limit?: number;
   title?: string;
+  searchText?: string;
 } 

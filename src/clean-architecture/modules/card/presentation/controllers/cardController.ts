@@ -23,7 +23,8 @@ export class CardController {
       toDate: req.query.toDate as string,
       page: req.query.page ? parseInt(req.query.page as string) : undefined,
       limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
-      title: req.query.title as string
+      title: req.query.title as string,
+      searchText: req.query.searchText as string
     });
     
     res.status(200).json({

@@ -16,7 +16,8 @@ export class GetCards {
       toDate,
       page = 1,
       limit = 20,
-      title
+      title,
+      searchText
     } = request;
 
     // Prepare filters
