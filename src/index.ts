@@ -23,7 +23,7 @@ const dbService = DatabaseService.getInstance();
 // Define allowed origins
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://demo-frontend-pzjg.onrender.com/",
+  "https://demo-frontend-pzjg.onrender.com",
 ];
 
 // CORS Configuration
