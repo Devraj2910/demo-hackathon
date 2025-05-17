@@ -32,5 +32,7 @@ router.get('/profile', authenticate,authorize(['users']), (req, res) => {
 //   });
 // });
 
+// Add this route to handle access grant
+// router.get('/grant-access/:userId', AuthController.grantAccess);
 
 export { router as authRoutes }; 

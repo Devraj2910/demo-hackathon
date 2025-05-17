@@ -5,5 +5,6 @@ export interface RegisterResponseDto {
   lastName?: string;
   role: string;
   position?: string;
-  createdAt: Date;
+  createdAt?: Date;
+  message?: string;
 } 

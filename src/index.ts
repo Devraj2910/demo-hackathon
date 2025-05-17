@@ -5,6 +5,7 @@ import { authRoutes } from "./clean-architecture/modules/login/presentation/rout
 import { cardRoutes } from "./clean-architecture/modules/card/presentation/routes/cardRoutes";
 import { userRoutes } from "./clean-architecture/modules/user/presentation/routes/userRoutes";
 import { teamRoutes } from "./clean-architecture/modules/team/presentation/routes/teamRoutes";
+import { analyticsRoutes } from "./clean-architecture/modules/analytics/presentation/routes/analyticsRoutes";
 import { DatabaseService } from "./services/database.service";
 import {
   errorHandler,
@@ -44,6 +45,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/cards", cardRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/teams", teamRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 // Health check endpoint
 app.use("/api/health", async (req: Request, res: Response) => {

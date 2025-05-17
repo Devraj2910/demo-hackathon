@@ -9,6 +9,9 @@ import {
   ConflictError,
   ForbiddenError
 } from '../../../../shared/errors/appError';
+import { EmailService } from '../../../../../services/email.service';
+import { DatabaseService } from '../../../../../services/database.service';
+import { PostgresUserRepository } from '../../infrastructure/repositories/postgresUserRepository';
 
 export class AuthController {
   static login = asyncHandler(async (req: Request, res: Response) => {
@@ -57,4 +60,6 @@ export class AuthController {
       throw error;
     }
   });
+
+ 
 } 
