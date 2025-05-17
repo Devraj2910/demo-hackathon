@@ -22,17 +22,10 @@ CREATE TABLE users (
 CREATE TABLE user_team_assignments (
     id VARCHAR(36) PRIMARY KEY,
     user_id VARCHAR(36) NOT NULL REFERENCES users(id),
-    team_id VARCHAR(36) NOT NULL REFERENCES teams(id),
+    team_id INTEGER NOT NULL REFERENCES teams(id),
     effective_from TIMESTAMP NOT NULL,
     effective_to TIMESTAMP,  -- NULL means currently active
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
-    -- Enforce no overlapping assignments for the same user
-    CONSTRAINT no_overlapping_assignments EXCLUDE USING gist (
-        user_id WITH =,
-        tsrange(effective_from, effective_to, '[]') WITH &&
-    )
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Cards/Notes table
