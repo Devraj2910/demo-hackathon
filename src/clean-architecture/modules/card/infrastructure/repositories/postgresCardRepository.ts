@@ -84,11 +84,11 @@ export class PostgresCardRepository implements CardRepository {
     
     // Create WHERE clause if any conditions exist
     const whereClause = conditions.length > 0 
-      ? ` WHERE ${conditions.join(' AND ')}` 
+      ? ` WHERE ${conditions.join(' AND ')} ORDER BY created_at DESC` 
       : '';
     
     // Count total records - simplified now with direct filtering
-    const countQuery = `SELECT * FROM cards${whereClause}`;
+    const countQuery = `SELECT COUNT(*) AS total FROM cards${whereClause}`;
     const countResult = await this.dbService.query<{ total: string }>(countQuery, queryParams);
     const total = parseInt(countResult[0]?.total || '0', 10);
     
