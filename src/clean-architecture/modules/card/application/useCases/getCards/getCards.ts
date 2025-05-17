@@ -1,7 +1,8 @@
 import { Card } from "../../../domain/entities/card";
 import { CardRepository } from "../../../repositories/cardRepository";
 import { GetCardsRequestDto } from "./getCardsRequestDto";
-import { CardDto, GetCardsResponseDto } from "./getCardsResponseDto";
+import { CardDto, GetCardsResponseDto, UserDetailsDto } from "./getCardsResponseDto";
+import { UserMapper } from "../../../mapper/UserMapper";
 
 export class GetCards {
   constructor(private cardRepository: CardRepository) {}
@@ -25,23 +26,45 @@ export class GetCards {
     if (teamId) filters.teamId = teamId;
     if (fromDate) filters.fromDate = new Date(fromDate);
     if (toDate) filters.toDate = new Date(toDate);
+    
+    // Add pagination
+    filters.page = page;
+    filters.limit = limit;
 
-    // Get cards with filters
-    const cards = await this.cardRepository.findAll(filters);
+    // Get cards with filters and pagination including user details
+    const paginatedResult = await this.cardRepository.findAllWithUsers(filters);
     
     // Map to DTOs
-    const cardDtos: CardDto[] = cards.map(card => this.mapToDto(card));
+    const cardDtos: CardDto[] = paginatedResult.data.map(cardWithUsers => this.mapToDto(
+      cardWithUsers.card,
+      cardWithUsers.creator ? UserMapper.toDetailsDto(cardWithUsers.creator) : null,
+      cardWithUsers.recipient ? UserMapper.toDetailsDto(cardWithUsers.recipient) : null
+    ));
     
     // Return paginated response
     return {
       cards: cardDtos,
-      total: cards.length,
-      page,
-      limit
+      total: paginatedResult.total,
+      page: paginatedResult.page,
+      limit: paginatedResult.limit,
+      totalPages: paginatedResult.totalPages
     };
   }
 
-  private mapToDto(card: Card): CardDto {
+  private mapToDto(
+    card: Card, 
+    creator: UserDetailsDto | null, 
+    recipient: UserDetailsDto | null
+  ): CardDto {
+    // Create empty user detail object for missing users
+    const emptyUser: UserDetailsDto = {
+      id: '',
+      email: '',
+      firstName: null,
+      lastName: null,
+      fullName: ''
+    };
+
     return {
       id: card.id ? card.id.toString() : '',
       title: card.title,
@@ -49,7 +72,9 @@ export class GetCards {
       userId: card.userId,
       createdFor: card.createdFor,
       createdAt: card.createdAt.toISOString(),
-      updatedAt: card.updatedAt.toISOString()
+      updatedAt: card.updatedAt.toISOString(),
+      creator: creator || emptyUser,
+      recipient: recipient || emptyUser
     };
   }
 } 

@@ -1,3 +1,11 @@
+export interface UserDetailsDto {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  fullName: string;
+}
+
 export interface CardDto {
   id: string;
   title: string;
@@ -6,6 +14,8 @@ export interface CardDto {
   createdFor: string;
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
+  creator: UserDetailsDto;
+  recipient: UserDetailsDto;
 }
 
 export interface GetCardsResponseDto {
@@ -13,4 +23,5 @@ export interface GetCardsResponseDto {
   total: number;
   page: number;
   limit: number;
+  totalPages: number;
 } 

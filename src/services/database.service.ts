@@ -23,7 +23,7 @@ export class DatabaseService {
       password: process.env.DB_PASSWORD,
       port: parseInt(process.env.DB_PORT || '5432'),
       max: 20, // Maximum number of clients
-      connectionTimeoutMillis: 5000, // How long to wait before timing out when connecting a new client
+      connectionTimeoutMillis: 50000, // How long to wait before timing out when connecting a new client
     };
 
     // Add SSL configuration if enabled

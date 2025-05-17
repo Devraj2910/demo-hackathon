@@ -21,12 +21,8 @@ export const getCardsSchema = Joi.object({
   userId: Joi.string().allow('', null),
   createdFor: Joi.string().allow('', null),
   teamId: Joi.string().allow('', null),
-  fromDate: Joi.string().isoDate().allow('', null).messages({
-    'string.isoDate': 'From date must be a valid ISO date'
-  }),
-  toDate: Joi.string().isoDate().allow('', null).messages({
-    'string.isoDate': 'To date must be a valid ISO date'
-  }),
+  fromDate: Joi.string().allow('', null),
+  toDate: Joi.string().allow('', null),
   page: Joi.number().integer().min(1).default(1).messages({
     'number.base': 'Page must be a number',
     'number.integer': 'Page must be an integer',
@@ -46,7 +42,8 @@ export const getLatestCardsSchema = Joi.object({
     'number.integer': 'Limit must be an integer',
     'number.min': 'Limit must be at least 1',
     'number.max': 'Limit must be at most 50'
-  })
+  }),
+  teamId: Joi.string().allow('', null)
 });
 
 export const deleteCardSchema = Joi.object({

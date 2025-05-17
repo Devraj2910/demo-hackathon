@@ -4,6 +4,7 @@ import cors from "cors";
 import { authRoutes } from "./clean-architecture/modules/login/presentation/routes/authRoutes";
 import { cardRoutes } from "./clean-architecture/modules/card/presentation/routes/cardRoutes";
 import { userRoutes } from "./clean-architecture/modules/user/presentation/routes/userRoutes";
+import { teamRoutes } from "./clean-architecture/modules/team/presentation/routes/teamRoutes";
 import { DatabaseService } from "./services/database.service";
 import {
   errorHandler,
@@ -42,9 +43,10 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/cards", cardRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/teams", teamRoutes);
 
 // Health check endpoint
-app.get("/health", async (req: Request, res: Response) => {
+app.use("/api/health", async (req: Request, res: Response) => {
   // Check database connectivity for health check
   const dbConnected = await dbService.testConnection();
 

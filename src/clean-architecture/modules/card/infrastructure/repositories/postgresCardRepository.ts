@@ -1,6 +1,9 @@
 import { DatabaseService } from "../../../../../services/database.service";
 import { Card, CardProps } from "../../domain/entities/card";
-import { CardRepository } from "../../repositories/cardRepository";
+import { CardRepository, PaginatedResult, CardWithUsers, PaginatedCardWithUsers } from "../../repositories/cardRepository";
+import { User } from "../../../user/domain/entities/User";
+import { UserRepositoryImpl } from "../../../user/infrastructure/repositories/UserRepositoryImpl";
+import { CardMapper } from "../../mapper/CardMapper";
 
 interface CardRow {
   id: number;
@@ -8,15 +11,18 @@ interface CardRow {
   content: string;
   user_id: string;
   created_for: string;
+  team_id: string | null;
   created_at: Date;
   updated_at: Date;
 }
 
 export class PostgresCardRepository implements CardRepository {
   private dbService: DatabaseService;
+  private userRepository: UserRepositoryImpl;
 
   constructor() {
     this.dbService = DatabaseService.getInstance();
+    this.userRepository = new UserRepositoryImpl(this.dbService.getPool());
   }
 
   async findById(id: string): Promise<Card | null> {
@@ -41,55 +47,75 @@ export class PostgresCardRepository implements CardRepository {
     teamId?: string;
     fromDate?: Date;
     toDate?: Date;
-  }): Promise<Card[]> {
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResult<Card>> {
     let queryParams: any[] = [];
     let conditions: string[] = [];
-    let queryStr = `SELECT c.* FROM cards c`;
     
-    // Add team join if teamId filter is present
+    // Use direct filtering on cards table now that team_id is a column
+    const baseQueryStr = `SELECT * FROM cards`;
+    
+    // Add all filter conditions
     if (filters?.teamId) {
-      queryStr += `
-        JOIN users u ON c.user_id = u.id
-        JOIN user_team_assignments uta ON 
-          u.id = uta.user_id AND 
-          c.created_at >= uta.effective_from AND 
-          (c.created_at < uta.effective_to OR uta.effective_to IS NULL)
-      `;
-      conditions.push(`uta.team_id = $${queryParams.length + 1}`);
+      conditions.push(`team_id = $${queryParams.length + 1}`);
       queryParams.push(filters.teamId);
     }
     
-    // Add other conditions
     if (filters?.userId) {
-      conditions.push(`c.user_id = $${queryParams.length + 1}`);
+      conditions.push(`user_id = $${queryParams.length + 1}`);
       queryParams.push(filters.userId);
     }
     
     if (filters?.createdFor) {
-      conditions.push(`c.created_for = $${queryParams.length + 1}`);
+      conditions.push(`created_for = $${queryParams.length + 1}`);
       queryParams.push(filters.createdFor);
     }
     
     if (filters?.fromDate) {
-      conditions.push(`c.created_at >= $${queryParams.length + 1}`);
+      conditions.push(`created_at >= $${queryParams.length + 1}`);
       queryParams.push(filters.fromDate);
     }
     
     if (filters?.toDate) {
-      conditions.push(`c.created_at <= $${queryParams.length + 1}`);
+      conditions.push(`created_at <= $${queryParams.length + 1}`);
       queryParams.push(filters.toDate);
     }
     
-    // Add WHERE clause if any conditions exist
-    if (conditions.length > 0) {
-      queryStr += ` WHERE ${conditions.join(' AND ')}`;
-    }
+    // Create WHERE clause if any conditions exist
+    const whereClause = conditions.length > 0 
+      ? ` WHERE ${conditions.join(' AND ')}` 
+      : '';
     
-    queryStr += ` ORDER BY c.created_at DESC`;
+    // Count total records - simplified now with direct filtering
+    const countQuery = `SELECT * FROM cards${whereClause}`;
+    const countResult = await this.dbService.query<{ total: string }>(countQuery, queryParams);
+    const total = parseInt(countResult[0]?.total || '0', 10);
     
-    const rows = await this.dbService.query<CardRow>(queryStr, queryParams);
+    // Setup pagination parameters
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 10;
+    const offset = (page - 1) * limit;
+    const totalPages = Math.ceil(total / limit);
     
-    return rows.map(row => this.mapToCard(row));
+    // Build the final query with pagination
+    const paginatedQuery = `${baseQueryStr}${whereClause} ORDER BY created_at DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+    queryParams.push(limit, offset);
+    
+    // Execute the query
+    const rows = await this.dbService.query<CardRow>(paginatedQuery, queryParams);
+    
+    // Map to domain entities
+    const cards = rows.map(row => this.mapToCard(row));
+    
+    // Return paginated result
+    return {
+      data: cards,
+      total,
+      page,
+      limit,
+      totalPages
+    };
   }
 
   async findByUser(userId: string): Promise<Card[]> {
@@ -116,14 +142,30 @@ export class PostgresCardRepository implements CardRepository {
     return rows.map(row => this.mapToCard(row));
   }
 
-  async findLatest(limit: number = 10): Promise<Card[]> {
-    const query = `
-      SELECT * FROM cards 
-      ORDER BY created_at DESC
-      LIMIT $1
-    `;
+  async findLatest(limit: number = 10, teamId?: string): Promise<Card[]> {
+    let queryStr: string;
+    let queryParams: any[] = [];
     
-    const rows = await this.dbService.query<CardRow>(query, [limit]);
+    if (teamId) {
+      // Direct filtering by team_id column
+      queryStr = `
+        SELECT * FROM cards
+        WHERE team_id = $1
+        ORDER BY created_at DESC
+        LIMIT $2
+      `;
+      queryParams = [teamId, limit];
+    } else {
+      // If not filtering by team, use the simpler query
+      queryStr = `
+        SELECT * FROM cards 
+        ORDER BY created_at DESC
+        LIMIT $1
+      `;
+      queryParams = [limit];
+    }
+    
+    const rows = await this.dbService.query<CardRow>(queryStr, queryParams);
     
     return rows.map(row => this.mapToCard(row));
   }
@@ -135,14 +177,16 @@ export class PostgresCardRepository implements CardRepository {
         UPDATE cards
         SET title = $1, 
             content = $2, 
-            updated_at = $3
-        WHERE id = $4
+            team_id = $3,
+            updated_at = $4
+        WHERE id = $5
         RETURNING *
       `;
       
       const params = [
         card.title,
         card.content,
+        card.teamId,
         card.updatedAt,
         card.id
       ];
@@ -157,10 +201,11 @@ export class PostgresCardRepository implements CardRepository {
           content, 
           user_id, 
           created_for, 
+          team_id,
           created_at, 
           updated_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
       `;
       
@@ -169,6 +214,7 @@ export class PostgresCardRepository implements CardRepository {
         card.content,
         card.userId,
         card.createdFor,
+        card.teamId,
         card.createdAt,
         card.updatedAt
       ];
@@ -191,16 +237,64 @@ export class PostgresCardRepository implements CardRepository {
   }
 
   private mapToCard(row: CardRow): Card {
-    const cardProps: CardProps = {
-      id: row.id.toString(),
-      title: row.title,
-      content: row.content,
-      userId: row.user_id,
-      createdFor: row.created_for,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
-    };
+    return CardMapper.toDomain(row);
+  }
+
+  async findAllWithUsers(filters?: {
+    userId?: string;
+    createdFor?: string;
+    teamId?: string;
+    fromDate?: Date;
+    toDate?: Date;
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedCardWithUsers> {
+    // First get paginated cards
+    const paginatedCards = await this.findAll(filters);
     
-    return Card.create(cardProps);
+    // Then fetch user details for each card
+    const cardsWithUsers = await this.addUserDetails(paginatedCards.data);
+    
+    return {
+      data: cardsWithUsers,
+      total: paginatedCards.total,
+      page: paginatedCards.page,
+      limit: paginatedCards.limit,
+      totalPages: paginatedCards.totalPages
+    };
+  }
+
+  async findLatestWithUsers(limit: number = 10, teamId?: string): Promise<CardWithUsers[]> {
+    // First get the latest cards
+    const cards = await this.findLatest(limit, teamId);
+    
+    // Then fetch user details for each card
+    return this.addUserDetails(cards);
+  }
+
+  // Helper method to add user details to cards
+  private async addUserDetails(cards: Card[]): Promise<CardWithUsers[]> {
+    // Collect all user IDs
+    const userIds = new Set<string>();
+    cards.forEach(card => {
+      userIds.add(card.userId);
+      userIds.add(card.createdFor);
+    });
+    
+    // Fetch all users at once
+    const users = new Map<string, User>();
+    for (const userId of userIds) {
+      const user = await this.userRepository.findById(userId);
+      if (user) {
+        users.set(userId, user);
+      }
+    }
+    
+    // Add user details to each card
+    return cards.map(card => CardMapper.toCardWithUsers(
+      card,
+      users.get(card.userId) || null,
+      users.get(card.createdFor) || null
+    ));
   }
 } 

@@ -1,4 +1,27 @@
 import { Card } from "../domain/entities/card";
+import { User } from "../../user/domain/entities/User";
+
+export interface PaginatedResult<T> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface CardWithUsers {
+  card: Card;
+  creator: User | null;
+  recipient: User | null;
+}
+
+export interface PaginatedCardWithUsers {
+  data: CardWithUsers[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
 
 export interface CardRepository {
   /**
@@ -7,7 +30,21 @@ export interface CardRepository {
   findById(id: string): Promise<Card | null>;
   
   /**
-   * Find all cards with optional filtering
+   * Find all cards with optional filtering and pagination
+   * Includes creator and recipient user details
+   */
+  findAllWithUsers(filters?: {
+    userId?: string;
+    createdFor?: string;
+    teamId?: string;
+    fromDate?: Date;
+    toDate?: Date;
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedCardWithUsers>;
+  
+  /**
+   * Find all cards with optional filtering and pagination
    */
   findAll(filters?: {
     userId?: string;
@@ -15,7 +52,9 @@ export interface CardRepository {
     teamId?: string;
     fromDate?: Date;
     toDate?: Date;
-  }): Promise<Card[]>;
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResult<Card>>;
   
   /**
    * Find cards created by a specific user
@@ -29,8 +68,14 @@ export interface CardRepository {
   
   /**
    * Find the latest N cards
+   * Includes creator and recipient user details
    */
-  findLatest(limit: number): Promise<Card[]>;
+  findLatestWithUsers(limit: number, teamId?: string): Promise<CardWithUsers[]>;
+  
+  /**
+   * Find the latest N cards
+   */
+  findLatest(limit: number, teamId?: string): Promise<Card[]>;
   
   /**
    * Save a card (create or update)

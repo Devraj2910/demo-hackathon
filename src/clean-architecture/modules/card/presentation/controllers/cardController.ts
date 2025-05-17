@@ -35,7 +35,8 @@ export class CardController {
     const { useCase } = GetLatestCardsFactory.create();
     
     const result = await useCase.execute({
-      limit: req.query.limit ? parseInt(req.query.limit as string) : undefined
+      limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+      teamId: req.query.teamId as string
     });
     
     res.status(200).json({

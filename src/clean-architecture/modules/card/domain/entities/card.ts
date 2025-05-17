@@ -6,16 +6,19 @@ export interface CardProps {
   createdFor: string;
   createdAt: Date;
   updatedAt: Date;
+  teamId?: string | null;
 }
 
 export class Card {
   private props: CardProps;
 
   private constructor(props: CardProps) {
-    this.props = props;
+    this.props = {
+      ...props
+    };
   }
 
-  static create(props: CardProps): Card {
+  public static create(props: CardProps): Card {
     return new Card(props);
   }
 
@@ -27,10 +30,27 @@ export class Card {
   get createdFor(): string { return this.props.createdFor; }
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }
+  get teamId(): string | null | undefined { return this.props.teamId; }
 
   // Setters
   set id(id: string) {
     this.props.id = id;
+  }
+
+  set title(title: string) {
+    this.props.title = title;
+  }
+
+  set content(content: string) {
+    this.props.content = content;
+  }
+
+  set updatedAt(date: Date) {
+    this.props.updatedAt = date;
+  }
+
+  set teamId(teamId: string | null) {
+    this.props.teamId = teamId;
   }
 
   // Business methods
