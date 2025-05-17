@@ -4,6 +4,7 @@ export interface AddCardResponseDto {
   content: string;
   userId: string;
   createdFor: string;
+  teamId: string | null | undefined;
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
 } 

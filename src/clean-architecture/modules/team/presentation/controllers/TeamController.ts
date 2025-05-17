@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { GetAllTeamsFactory } from '../../application/useCases/getAllTeams/GetAllTeamsFactory';
+import { UpdateUserTeamFactory } from '../../application/useCases/updateUserTeam/UpdateUserTeamFactory';
 
 export class TeamController {
   static async getAllTeams(req: Request, res: Response, next: NextFunction) {
@@ -10,6 +11,24 @@ export class TeamController {
       res.status(200).json({
         success: true,
         data: teams
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateUserTeam(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { useCase } = UpdateUserTeamFactory.create();
+      
+      const result = await useCase.execute({
+        userId: req.body.userId,
+        teamId: req.body.teamId
+      });
+      
+      res.status(200).json({
+        success: true,
+        data: result
       });
     } catch (error) {
       next(error);

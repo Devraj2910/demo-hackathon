@@ -42,7 +42,8 @@ export class AuthController {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         role: req.body.role,
-        position: req.body.position
+        position: req.body.position,
+        teamId: req.body.teamId
       });
       
       res.status(201).json({

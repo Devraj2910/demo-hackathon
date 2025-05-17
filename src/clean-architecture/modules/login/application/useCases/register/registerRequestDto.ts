@@ -5,4 +5,5 @@ export interface RegisterRequestDto {
   lastName?: string;
   role?: string;
   position?: string;
+  teamId?: number;
 } 

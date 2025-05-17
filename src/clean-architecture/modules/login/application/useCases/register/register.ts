@@ -5,15 +5,17 @@ import { AuthService } from "../../../domain/services/authService";
 import { UserRepository } from "../../../repositories/userRepository";
 import { RegisterRequestDto } from "./registerRequestDto";
 import { RegisterResponseDto } from "./registerResponseDto";
+import { TeamAssignmentRepository } from '../../../repositories/teamAssignmentRepository';
 
 export class Register {
   constructor(
     private userRepository: UserRepository,
-    private authService: AuthService
+    private authService: AuthService,
+    private teamAssignmentRepository?: TeamAssignmentRepository
   ) {}
 
   async execute(request: RegisterRequestDto): Promise<RegisterResponseDto> {
-    const { email, password, firstName, lastName, role, position } = request;
+    const { email, password, firstName, lastName, role, position, teamId } = request;
 
     // Check if email already exists
     const emailExists = await this.userRepository.existsByEmail(email);
@@ -26,8 +28,9 @@ export class Register {
 
     // Create user entity
     const now = new Date();
+    const userId = uuidv4();
     const user = User.create({
-      id: uuidv4(),
+      id: userId,
       email,
       passwordHash,
       firstName,
@@ -40,6 +43,17 @@ export class Register {
 
     // Save user to database
     const savedUser = await this.userRepository.save(user);
+
+    // If teamId is provided and the repository is available, assign the user to the team
+    if (teamId && this.teamAssignmentRepository) {
+      await this.teamAssignmentRepository.assignUserToTeam({
+        id: uuidv4(),
+        userId: savedUser.id,
+        teamId: teamId,
+        effectiveFrom: now,
+        effectiveTo: null
+      });
+    }
 
     // Return user data
     return {
