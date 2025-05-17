@@ -33,7 +33,8 @@ export const getCardsSchema = Joi.object({
     'number.integer': 'Limit must be an integer',
     'number.min': 'Limit must be at least 1',
     'number.max': 'Limit must be at most 100'
-  })
+  }),
+  title: Joi.string()
 });
 
 export const getLatestCardsSchema = Joi.object({

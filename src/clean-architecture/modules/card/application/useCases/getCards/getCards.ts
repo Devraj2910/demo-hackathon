@@ -15,7 +15,8 @@ export class GetCards {
       fromDate, 
       toDate,
       page = 1,
-      limit = 20
+      limit = 20,
+      title
     } = request;
 
     // Prepare filters
@@ -26,6 +27,7 @@ export class GetCards {
     if (teamId) filters.teamId = teamId;
     if (fromDate) filters.fromDate = new Date(fromDate);
     if (toDate) filters.toDate = new Date(toDate);
+    if (title) filters.title = title;
     
     // Add pagination
     filters.page = page;

@@ -12,7 +12,8 @@
     "setup:email": "ts-node src/scripts/setup-test-email.ts",
     "setup:mailjet": "ts-node src/scripts/create-mailjet-env.ts",
     "test:email": "ts-node src/scripts/test-email.ts",
-    "test:mailjet": "ts-node src/scripts/test-mailjet.ts"
+    "test:mailjet": "ts-node src/scripts/test-mailjet.ts",
+    "test:basecamp-alert": "ts-node src/scripts/test-basecamp-alert.ts"
   },
   "keywords": [],
   "author": "",

@@ -6,4 +6,5 @@ export interface GetCardsRequestDto {
   toDate?: string; // ISO date string format
   page?: number;
   limit?: number;
+  title?: string;
 } 

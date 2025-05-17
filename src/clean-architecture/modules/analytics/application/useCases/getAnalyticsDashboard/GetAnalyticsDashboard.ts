@@ -6,11 +6,8 @@ export class GetAnalyticsDashboard {
   constructor(private readonly analyticsRepository: AnalyticsRepository) {}
 
   async execute(requestDto: GetAnalyticsDashboardRequestDto): Promise<GetAnalyticsDashboardResponseDto> {
-    // Parse dates from ISO strings
-    const timeRange: DashboardTimeRange = {
-      startDate: new Date(requestDto.startDate),
-      endDate: new Date(requestDto.endDate)
-    };
+    // Parse dates from ISO strings and set proper time ranges
+    const timeRange: DashboardTimeRange = this.getTimeRange(requestDto);
 
     // Get analytics data
     const dashboardData = await this.analyticsRepository.getDashboardAnalytics(timeRange);
@@ -26,5 +23,19 @@ export class GetAnalyticsDashboard {
       monthlyAnalytics: dashboardData.monthlyAnalytics,
       titleAnalytics: dashboardData.titleAnalytics
     };
+  }
+
+  private getTimeRange(requestDto: GetAnalyticsDashboardRequestDto) {
+    const startDate = new Date(requestDto.startDate);
+    startDate.setHours(0, 0, 0, 0); // Set to beginning of day (00:00:00)
+
+    const endDate = new Date(requestDto.endDate);
+    endDate.setHours(23, 59, 59, 999); // Set to end of day (23:59:59.999)
+
+    const timeRange: DashboardTimeRange = {
+      startDate,
+      endDate
+    };
+    return timeRange;
   }
 } 

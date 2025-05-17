@@ -4,11 +4,15 @@ import { CardRepository } from "../../../repositories/cardRepository";
 import { AddCardRequestDto } from "./addCardRequestDto";
 import { AddCardResponseDto } from "./addCardResponseDto";
 import { TeamAssignmentRepository } from "../../../../login/repositories/teamAssignmentRepository";
+import { UserRepository } from "../../../../login/repositories/userRepository";
+import { BaseCampAlert } from "../../../../../../services/baseCampAlert";
 
 export class AddCard {
   constructor(
     private cardRepository: CardRepository,
-    private teamAssignmentRepository: TeamAssignmentRepository
+    private teamAssignmentRepository: TeamAssignmentRepository,
+    private userRepository: UserRepository,
+    private basecampAlert: BaseCampAlert
   ) {}
 
   async execute(request: AddCardRequestDto): Promise<AddCardResponseDto> {
@@ -38,6 +42,9 @@ export class AddCard {
     // Save card to database (ID will be assigned by database)
     const savedCard = await this.cardRepository.save(card);
 
+    // Send Basecamp notification
+      await this.sendBasecampNotification(savedCard);
+
     // Return response
     return {
       id: savedCard.id as string,
@@ -49,5 +56,42 @@ export class AddCard {
       createdAt: savedCard.createdAt.toISOString(),
       updatedAt: savedCard.updatedAt.toISOString()
     };
+  }
+
+  /**
+   * Send a notification to Basecamp about the new card
+   */
+  private async sendBasecampNotification(card: Card): Promise<void> {
+    try {
+      // Get user information for sender and recipient
+      const [creator, recipient] = await Promise.all([
+        this.userRepository.findById(card.userId),
+        this.userRepository.findById(card.createdFor)
+      ]);
+
+      if (!creator || !recipient) {
+        console.error('Cannot send Basecamp notification: User information not found');
+        return;
+      }
+
+      // Send the notification
+      await this.basecampAlert.sendCardCreationAlert({
+        cardId: card.id as string,
+        title: card.title,
+        content: card.content,
+        createdBy: {
+          firstName: creator.firstName || 'Unknown',
+          lastName: creator.lastName || 'User'
+        },
+        createdFor: {
+          firstName: recipient.firstName || 'Unknown',
+          lastName: recipient.lastName || 'User'
+        }
+      });
+
+    } catch (error) {
+      // Log error but don't fail the card creation
+      console.error('Failed to send Basecamp notification:', error);
+    }
   }
 } 

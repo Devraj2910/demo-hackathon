@@ -49,6 +49,7 @@ export class PostgresCardRepository implements CardRepository {
     toDate?: Date;
     page?: number;
     limit?: number;
+    title?: string;
   }): Promise<PaginatedResult<Card>> {
     let queryParams: any[] = [];
     let conditions: string[] = [];
@@ -81,10 +82,15 @@ export class PostgresCardRepository implements CardRepository {
       conditions.push(`created_at <= $${queryParams.length + 1}`);
       queryParams.push(filters.toDate);
     }
+
+    if (filters?.title) {
+      conditions.push(`title = $${queryParams.length + 1}`);
+      queryParams.push(filters.title);
+    }
     
     // Create WHERE clause if any conditions exist
     const whereClause = conditions.length > 0 
-      ? ` WHERE ${conditions.join(' AND ')} ORDER BY created_at DESC` 
+      ? ` WHERE ${conditions.join(' AND ')}` 
       : '';
     
     // Count total records - simplified now with direct filtering
