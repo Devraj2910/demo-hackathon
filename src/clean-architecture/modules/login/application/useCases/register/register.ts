@@ -13,7 +13,7 @@ export class Register {
   ) {}
 
   async execute(request: RegisterRequestDto): Promise<RegisterResponseDto> {
-    const { email, password, firstName, lastName } = request;
+    const { email, password, firstName, lastName, role, position } = request;
 
     // Check if email already exists
     const emailExists = await this.userRepository.existsByEmail(email);
@@ -32,6 +32,8 @@ export class Register {
       passwordHash,
       firstName,
       lastName,
+      role: role || 'user', // Default role is 'user' if not specified
+      position,
       createdAt: now,
       updatedAt: now
     });
@@ -45,6 +47,8 @@ export class Register {
       email: savedUser.email,
       firstName: savedUser.firstName,
       lastName: savedUser.lastName,
+      role: savedUser.role,
+      position: savedUser.position,
       createdAt: savedUser.createdAt
     };
   }

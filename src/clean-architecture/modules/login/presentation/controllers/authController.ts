@@ -6,7 +6,8 @@ import { asyncHandler } from '../../../../shared/errors';
 import { 
   BadRequestError, 
   UnauthorizedError, 
-  ConflictError 
+  ConflictError,
+  ForbiddenError
 } from '../../../../shared/errors/appError';
 
 export class AuthController {
@@ -39,7 +40,9 @@ export class AuthController {
         email: req.body.email,
         password: req.body.password,
         firstName: req.body.firstName,
-        lastName: req.body.lastName
+        lastName: req.body.lastName,
+        role: req.body.role,
+        position: req.body.position
       });
       
       res.status(201).json({

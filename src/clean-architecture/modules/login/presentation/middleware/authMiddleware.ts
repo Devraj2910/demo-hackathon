@@ -9,6 +9,7 @@ declare global {
       user?: {
         userId: string;
         email: string;
+        role: string;
       };
     }
   }
@@ -48,7 +49,8 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     // Attach user info to the request
     req.user = {
       userId: decoded.userId,
-      email: decoded.email
+      email: decoded.email,
+      role: decoded.role
     };
 
     next();
@@ -61,4 +63,27 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     }
     next(error);
   }
+};
+
+// Role-based access control middleware
+export const authorize = (allowedRoles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    // Check if user exists and has been authenticated
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    // Check if user's role is in the allowed roles
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        error: 'Access forbidden: Insufficient permissions'
+      });
+    }
+
+    next();
+  };
 }; 

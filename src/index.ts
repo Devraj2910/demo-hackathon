@@ -1,7 +1,8 @@
 import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
-import { databaseRoutes } from './clean-architecture/modules/database/presentation/routes/databaseRoutes';
 import { authRoutes } from './clean-architecture/modules/login/presentation/routes/authRoutes';
+import { cardRoutes } from './clean-architecture/modules/card/presentation/routes/cardRoutes';
+import { userRoutes } from './clean-architecture/modules/user/presentation/routes/userRoutes';
 import { DatabaseService } from './services/database.service';
 import { errorHandler, notFoundHandler } from './clean-architecture/shared/errors';
 
@@ -18,8 +19,9 @@ const dbService = DatabaseService.getInstance();
 app.use(express.json());
 
 // Routes
-app.use('/api/database', databaseRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/cards', cardRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check endpoint
 app.get('/health', async (req: Request, res: Response) => {
@@ -52,7 +54,7 @@ async function startServer() {
     // Start server if database connection is successful
     const server = app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
-      console.log(`Health check available at: http://localhost:${PORT}/health`);
+      console.log(`Health check available at: ${process.env.HOST}/health`);
     });
     
     // Handle graceful shutdown

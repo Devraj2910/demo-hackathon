@@ -11,6 +11,9 @@ export const loginSchema = Joi.object({
   })
 });
 
+// Define valid roles
+const validRoles = ['user', 'admin'];
+
 export const registerSchema = Joi.object({
   email: Joi.string().email().required().messages({
     'string.email': 'Please provide a valid email address',
@@ -21,5 +24,9 @@ export const registerSchema = Joi.object({
     'any.required': 'Password is required'
   }),
   firstName: Joi.string().allow('', null),
-  lastName: Joi.string().allow('', null)
+  lastName: Joi.string().allow('', null),
+  position: Joi.string().allow('', null),
+  role: Joi.string().valid(...validRoles).default('user').messages({
+    'any.only': `Role must be one of: ${validRoles.join(', ')}`
+  })
 }); 

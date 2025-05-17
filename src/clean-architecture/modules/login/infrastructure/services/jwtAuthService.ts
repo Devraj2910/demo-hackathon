@@ -25,7 +25,8 @@ export class JwtAuthService implements AuthService {
   generateToken(user: User): TokenResult {
     const payload: TokenPayload = {
       userId: user.id,
-      email: user.email
+      email: user.email,
+      role: user.role
     };
 
     const token = jwt.sign(payload, this.jwtSecret, {

@@ -23,8 +23,7 @@ export class DatabaseService {
       password: process.env.DB_PASSWORD,
       port: parseInt(process.env.DB_PORT || '5432'),
       max: 20, // Maximum number of clients
-      idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
-      connectionTimeoutMillis: 2000, // How long to wait before timing out when connecting a new client
+      connectionTimeoutMillis: 5000, // How long to wait before timing out when connecting a new client
     };
 
     // Add SSL configuration if enabled
@@ -98,6 +97,15 @@ export class DatabaseService {
       console.error('❌ Database connection failed:', error);
       return false;
     }
+  }
+
+  /**
+   * Get the database pool instance
+   * Used by repositories that need direct access to the pool
+   * @returns The database pool
+   */
+  public getPool(): Pool {
+    return this.pool;
   }
 
   /**

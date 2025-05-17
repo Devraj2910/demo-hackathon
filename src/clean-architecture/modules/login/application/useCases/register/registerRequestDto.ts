@@ -3,4 +3,6 @@ export interface RegisterRequestDto {
   password: string;
   firstName?: string;
   lastName?: string;
+  role?: string;
+  position?: string;
 } 

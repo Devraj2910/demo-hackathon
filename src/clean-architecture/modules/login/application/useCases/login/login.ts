@@ -38,6 +38,8 @@ export class Login {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
+      role: user.role,
+      position: user.position,
       token,
       expiresIn
     };

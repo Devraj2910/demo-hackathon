@@ -8,6 +8,8 @@ interface UserRow {
   password_hash: string;
   first_name: string | null;
   last_name: string | null;
+  role: string;
+  position: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -63,8 +65,10 @@ export class PostgresUserRepository implements UserRepository {
             password_hash = $2, 
             first_name = $3, 
             last_name = $4,
-            updated_at = $5
-        WHERE id = $6
+            role = $5,
+            position = $6,
+            updated_at = $7
+        WHERE id = $8
         RETURNING *
       `;
       
@@ -73,6 +77,8 @@ export class PostgresUserRepository implements UserRepository {
         user.passwordHash,
         user.firstName || null,
         user.lastName || null,
+        user.role,
+        user.position || null,
         user.updatedAt,
         user.id
       ];
@@ -87,11 +93,13 @@ export class PostgresUserRepository implements UserRepository {
           email, 
           password_hash, 
           first_name, 
-          last_name, 
+          last_name,
+          role,
+          position,
           created_at, 
           updated_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING *
       `;
       
@@ -101,6 +109,8 @@ export class PostgresUserRepository implements UserRepository {
         user.passwordHash,
         user.firstName || null,
         user.lastName || null,
+        user.role,
+        user.position || null,
         user.createdAt,
         user.updatedAt
       ];
@@ -128,6 +138,8 @@ export class PostgresUserRepository implements UserRepository {
       passwordHash: row.password_hash,
       firstName: row.first_name || undefined,
       lastName: row.last_name || undefined,
+      role: row.role,
+      position: row.position || undefined,
       createdAt: row.created_at,
       updatedAt: row.updated_at
     };
