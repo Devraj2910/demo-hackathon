@@ -1,10 +1,10 @@
 import { GetAllTeams } from './GetAllTeams';
 import { TeamRepositoryImpl } from '../../../infrastructure/repositories/TeamRepositoryImpl';
-import { Database } from '../../../infrastructure/database/Database';
+import { DatabaseService } from '../../../../../../services';
 
 export class GetAllTeamsFactory {
   static create() {
-    const database = Database.getInstance();
+    const database = DatabaseService.getInstance();
     const teamRepository = new TeamRepositoryImpl(database);
     const useCase = new GetAllTeams(teamRepository);
     

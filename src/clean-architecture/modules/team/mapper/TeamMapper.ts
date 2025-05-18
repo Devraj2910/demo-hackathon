@@ -1,5 +1,6 @@
 import { Team, TeamProps } from '../domain/entities/Team';
 import { GetAllTeamsResponseDto } from '../application/useCases/getAllTeams/GetAllTeamsResponseDto';
+import { CreateTeamResponseDto } from '../application/useCases/createTeam/CreateTeamResponseDto';
 
 interface TeamPersistenceModel {
   id: number;
@@ -42,5 +43,15 @@ export class TeamMapper {
 
   static toDTOList(teams: Team[]): GetAllTeamsResponseDto[] {
     return teams.map(team => this.toDTO(team));
+  }
+  
+  static toCreateTeamDTO(team: Team): CreateTeamResponseDto {
+    return {
+      id: team.getId(),
+      name: team.getName(),
+      description: team.getDescription(),
+      createdAt: team.getCreatedAt().toISOString(),
+      updatedAt: team.getUpdatedAt().toISOString()
+    };
   }
 } 

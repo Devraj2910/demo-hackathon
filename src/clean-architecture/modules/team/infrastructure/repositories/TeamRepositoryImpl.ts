@@ -2,23 +2,26 @@ import { TeamRepository } from '../../repositories/TeamRepository';
 import { Team } from '../../domain/entities/Team';
 import { Database } from '../database/Database';
 import { TeamMapper } from '../../mapper/TeamMapper';
+import { DatabaseService } from '../../../../../services';
 
 export class TeamRepositoryImpl implements TeamRepository {
-  constructor(private db: Database) {}
+  constructor(private db: DatabaseService) {
+    this.db = DatabaseService.getInstance();
+  }
 
   async findAll(): Promise<Team[]> {
-    const result = await this.db.query('SELECT * FROM teams ORDER BY id');
+    const result:any = await this.db.query('SELECT * FROM teams ORDER BY id');
     return result.map(TeamMapper.toDomain);
   }
 
   async findById(id: number): Promise<Team | null> {
-    const result = await this.db.query('SELECT * FROM teams WHERE id = $1', [id]);
+    const result:any = await this.db.query('SELECT * FROM teams WHERE id = $1', [id]);
     return result.length ? TeamMapper.toDomain(result[0]) : null;
   }
 
   async create(team: Team): Promise<Team> {
     const data = TeamMapper.toPersistence(team);
-    const result = await this.db.query(
+    const result:any = await this.db.query(
       'INSERT INTO teams (name, description) VALUES ($1, $2) RETURNING *',
       [data.name, data.description]
     );
@@ -27,7 +30,7 @@ export class TeamRepositoryImpl implements TeamRepository {
 
   async update(team: Team): Promise<Team> {
     const data = TeamMapper.toPersistence(team);
-    const result = await this.db.query(
+    const result:any = await this.db.query(
       'UPDATE teams SET name = $1, description = $2 WHERE id = $3 RETURNING *',
       [data.name, data.description, data.id]
     );
