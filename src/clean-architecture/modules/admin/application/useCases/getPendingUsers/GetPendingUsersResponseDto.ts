@@ -10,6 +10,19 @@ export interface UserDto {
   updatedAt: Date;
 }
 
+export interface TeamAssignmentDto {
+  id: string;
+  userId: string;
+  teamId: number;
+  effectiveFrom: Date;
+  effectiveTo: Date | null;
+}
+
+export interface UserWithTeamDto extends UserDto {
+  teamAssignment: TeamAssignmentDto | null;
+  teamName?: string;
+}
+
 export interface GetPendingUsersResponseDto {
-  users: UserDto[];
+  users: UserWithTeamDto[];
 } 

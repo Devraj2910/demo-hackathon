@@ -1,20 +1,17 @@
 import { Request, Response } from 'express';
 import { Pool } from 'pg';
 import { GetPendingUsersFactory } from '../../application/useCases/getPendingUsers/GetPendingUsersFactory';
+import { ProcessUserRequestFactory } from '../../application/useCases/processUserRequest/ProcessUserRequestFactory';
+import { GetTeamsWithEffectiveUsersFactory } from '../../application/useCases/getTeamsWithEffectiveUsers/GetTeamsWithEffectiveUsersFactory';
 
 export class AdminController {
-  private dbPool: Pool;
-  
-  constructor(dbPool: Pool) {
-    this.dbPool = dbPool;
-  }
-  
+
   /**
    * Get all users with pending permissions
    */
-  async getPendingUsers(req: Request, res: Response): Promise<void> {
+  static async getPendingUsers(req: Request, res: Response): Promise<void> {
     try {
-      const { useCase } = GetPendingUsersFactory.create(this.dbPool);
+      const { useCase } =  GetPendingUsersFactory.create();
       const result = await useCase.execute();
       
       res.status(200).json({
@@ -26,6 +23,52 @@ export class AdminController {
       res.status(500).json({
         success: false,
         message: 'Failed to get pending users',
+        error: (error as Error).message
+      });
+    }
+  }
+
+  /**
+   * Process a user request (approve or decline)
+   */
+  static async processUserRequest(req: Request, res: Response): Promise<void> {
+    try {
+      const { userId, status } = req.body;
+      
+      const { useCase } = ProcessUserRequestFactory.create();
+      const result = await useCase.execute({ userId, status });
+      
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      console.error('Error processing user request:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to process user request',
+        error: (error as Error).message
+      });
+    }
+  }
+
+  /**
+   * Get all teams with their effective users
+   */
+  static async getTeamsWithEffectiveUsers(req: Request, res: Response): Promise<void> {
+    try {
+      const { useCase } = GetTeamsWithEffectiveUsersFactory.create();
+      const result = await useCase.execute();
+      
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      console.error('Error getting teams with effective users:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get teams with effective users',
         error: (error as Error).message
       });
     }
