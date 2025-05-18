@@ -12,7 +12,7 @@ export const loginSchema = Joi.object({
 });
 
 // Define valid roles
-const validRoles = ['user', 'admin'];
+const validRoles = ['user', 'admin','tech-lead'];
 
 export const registerSchema = Joi.object({
   email: Joi.string().email().required().messages({

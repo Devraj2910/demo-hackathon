@@ -28,7 +28,7 @@ router.get('/', validateQuery(getCardsSchema), CardController.getCards);
 router.get('/latest', validateQuery(getLatestCardsSchema), CardController.getLatestCards);
 
 // Add new card
-router.post('/', validate(addCardSchema), CardController.addCard);
+router.post('/', authenticate,authorize(['team-leader','admin']), validate(addCardSchema), CardController.addCard);
 
 // Delete card (admin only)
 router.delete('/:id', validateParams(deleteCardSchema), CardController.deleteCard);
