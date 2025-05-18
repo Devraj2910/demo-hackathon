@@ -391,11 +391,29 @@ export class ReportGeneratorService {
       // Write HTML to temp file
       await fs.writeFile(tempFilePath, htmlContent);
 
-      // Launch puppeteer
-      const browser = await puppeteer.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      // Configure puppeteer launch options with Chrome executable path for Render.com
+      const launchOptions: any = {
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--disable-features=site-per-process',
+          '--disable-extensions'
+        ],
         headless: true
-      });
+      };
+      
+      // Add executable path if it's specified in environment variables
+      if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+        console.log(`Using Chrome from path: ${process.env.PUPPETEER_EXECUTABLE_PATH}`);
+        launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+      }
+
+      console.log('Launching puppeteer with options:', JSON.stringify(launchOptions, null, 2));
+      
+      // Launch puppeteer
+      const browser = await puppeteer.launch(launchOptions);
       
       const page = await browser.newPage();
       
