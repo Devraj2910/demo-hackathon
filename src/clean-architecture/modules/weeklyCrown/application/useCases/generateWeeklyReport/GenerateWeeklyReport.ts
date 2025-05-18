@@ -5,6 +5,7 @@ import { AnalyticsDashboardService } from '../../../infrastructure/services/Anal
 import { ReportGeneratorService } from '../../../infrastructure/services/ReportGeneratorService';
 import { EmailService } from '../../../../../../services/email.service';
 import { WeeklyReport } from '../../../domain/entities/WeeklyReport';
+import { v4 as uuidv4 } from 'uuid';
 
 export class GenerateWeeklyReport {
   constructor(
@@ -15,101 +16,140 @@ export class GenerateWeeklyReport {
   ) {}
 
   async execute(request: GenerateWeeklyReportRequestDto): Promise<GenerateWeeklyReportResponseDto> {
-    const { startDate, endDate, recipientEmail } = request;
-    
     try {
-      // Create a pending report entity
-      const report = WeeklyReport.create({
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        createdAt: new Date(),
-        reportData: {}, // Initialize with empty object instead of null
-        sentTo: recipientEmail,
-        status: 'pending'
-      });
+      // Create a new report entry in the database
+      const reportId = await this.createReportEntry(request);
       
-      // Save the initial pending state
-      await this.weeklyReportRepository.save(report);
+      // Generate the report asynchronously
+      const result = await this.generateAndSendReport(reportId, request);
       
+      return result;
+    } catch (error: any) {
+      console.error('Failed to generate weekly report:', error);
+      throw new Error(`Failed to generate weekly report: ${error.message || 'Unknown error'}`);
+    }
+  }
+
+  // Create a new report entry in the database
+  private async createReportEntry(request: GenerateWeeklyReportRequestDto): Promise<string> {
+    // Generate a new reportId
+    const reportId = uuidv4();
+    
+    // Create a WeeklyReport entity
+    const report = WeeklyReport.create({
+      id: reportId,
+      startDate: new Date(request.startDate),
+      endDate: new Date(request.endDate),
+      createdAt: new Date(),
+      reportData: {}, // Initialize with empty object instead of null
+      sentTo: request.recipientEmail,
+      status: 'pending'
+    });
+    
+    // Save the report entity
+    await this.weeklyReportRepository.save(report);
+    
+    return reportId;
+  }
+
+  // Generate and send the report
+  private async generateAndSendReport(
+    reportId: string, 
+    request: GenerateWeeklyReportRequestDto
+  ): Promise<GenerateWeeklyReportResponseDto> {
+    try {
       // Fetch analytics data
-      const dashboardData = await this.analyticsDashboardService.getDashboardData(
-        startDate,
-        endDate
+      const analyticsData = await this.analyticsDashboardService.getDashboardData(
+        request.startDate,
+        request.endDate
       );
-      
-      // Update report with the data
-      report.getReportData() !== dashboardData ? report['props'].reportData = dashboardData : null;
-      
-      // Format dates for email subject
-      const formattedStartDate = new Date(startDate).toLocaleDateString();
-      const formattedEndDate = new Date(endDate).toLocaleDateString();
       
       // Generate PDF report
-      const pdfBuffer = await this.reportGeneratorService.generatePdfReport(
-        dashboardData,
-        startDate,
-        endDate
+      let fileAttachment: Buffer;
+      let filename: string;
+      let contentType: string;
+      let isHtmlFallback = false;
+      
+      try {
+        // Try to generate PDF
+        fileAttachment = await this.reportGeneratorService.generatePdfReport(
+          analyticsData,
+          request.startDate,
+          request.endDate
+        );
+        filename = `weekly-report-${new Date().toISOString().split('T')[0]}.pdf`;
+        contentType = 'application/pdf';
+      } catch (pdfError) {
+        console.error('PDF generation failed, using HTML fallback:', pdfError);
+        
+        // Fall back to HTML if PDF generation fails
+        fileAttachment = Buffer.from(this.reportGeneratorService.generateHtmlReport(
+          analyticsData,
+          request.startDate,
+          request.endDate
+        ));
+        filename = `weekly-report-${new Date().toISOString().split('T')[0]}.html`;
+        contentType = 'text/html';
+        isHtmlFallback = true;
+      }
+      
+      // Generate email preview
+      const emailHtml = this.reportGeneratorService.generateEmailPreview(
+        analyticsData,
+        request.startDate,
+        request.endDate
       );
       
-      // Generate email preview HTML
-      const emailPreviewHtml = this.reportGeneratorService.generateEmailPreview(
-        dashboardData,
-        startDate,
-        endDate
-      );
+      // Add a note if we're using the HTML fallback
+      const emailSubject = isHtmlFallback
+        ? 'Weekly Recognition Report (HTML Version) - PDF Generation Failed'
+        : 'Weekly Recognition Report';
       
-      // Send email with PDF attachment
+      // Send email with attachment
       await this.emailService.sendEmail({
-        to: recipientEmail,
-        subject: `Weekly Recognition Report: ${formattedStartDate} - ${formattedEndDate}`,
-        html: emailPreviewHtml,
+        to: request.recipientEmail,
+        subject: emailSubject,
+        html: emailHtml,
         attachments: [
           {
-            filename: `Weekly_Recognition_Report_${formattedStartDate}_${formattedEndDate}.pdf`,
-            content: pdfBuffer,
-            contentType: 'application/pdf'
+            filename,
+            content: fileAttachment,
+            contentType
           }
         ]
       });
       
-      // Update report status to sent
-      report.markAsSent();
-      
-      // Save the final report state
-      const savedReport = await this.weeklyReportRepository.save(report);
-      
-      // Return success response
-      return {
-        reportId: savedReport.getId(),
-        startDate,
-        endDate,
-        sentTo: recipientEmail,
-        status: 'sent',
-        message: 'Weekly report generated and sent successfully'
-      };
-    } catch (error) {
-      console.error('Error generating weekly report:', error);
-      
-      // Try to get the report entity (if it was created)
-      const existingReport = await this.weeklyReportRepository.getLatest();
-      
-      if (existingReport) {
-        // Mark as failed and save
-        existingReport.markAsFailed((error as Error).message);
-        await this.weeklyReportRepository.save(existingReport);
-        
-        return {
-          reportId: existingReport.getId(),
-          startDate,
-          endDate,
-          sentTo: recipientEmail,
-          status: 'failed',
-          message: `Failed to generate weekly report: ${(error as Error).message}`
-        };
+      // Update report status to "sent"
+      const report = await this.weeklyReportRepository.getById(reportId);
+      if (report) {
+        report.markAsSent();
+        await this.weeklyReportRepository.save(report);
       }
       
-      // If we couldn't get the report, throw the error
-      throw error;
+      return {
+        reportId,
+        startDate: request.startDate,
+        endDate: request.endDate,
+        sentTo: request.recipientEmail,
+        status: 'sent', // Use 'sent' instead of 'completed' to match the allowed status values
+        message: 'Weekly report generated and sent successfully'
+      };
+    } catch (error: any) {
+      // Update report status to "failed"
+      const report = await this.weeklyReportRepository.getById(reportId);
+      if (report) {
+        report.markAsFailed(error.message || 'Unknown error');
+        await this.weeklyReportRepository.save(report);
+      }
+      
+      return {
+        reportId,
+        startDate: request.startDate,
+        endDate: request.endDate,
+        sentTo: request.recipientEmail,
+        status: 'failed',
+        message: error.message || 'Unknown error'
+      };
     }
   }
 } 
