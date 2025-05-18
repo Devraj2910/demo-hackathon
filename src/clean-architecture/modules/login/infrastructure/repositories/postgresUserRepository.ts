@@ -26,6 +26,7 @@ export class PostgresUserRepository implements UserRepository {
     const query = `
       SELECT * FROM users 
       WHERE email = $1
+      ORDER BY created_at DESC
       LIMIT 1
     `;
     
