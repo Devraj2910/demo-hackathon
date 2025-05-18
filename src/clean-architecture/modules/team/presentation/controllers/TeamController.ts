@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { GetAllTeamsFactory } from '../../application/useCases/getAllTeams/GetAllTeamsFactory';
 import { UpdateUserTeamFactory } from '../../application/useCases/updateUserTeam/UpdateUserTeamFactory';
 import { CreateTeamFactory } from '../../application/useCases/createTeam/CreateTeamFactory';
+import { DeleteTeamFactory } from '../../application/useCases/deleteTeam/DeleteTeamFactory';
 
 export class TeamController {
   static async getAllTeams(req: Request, res: Response, next: NextFunction) {
@@ -50,6 +51,29 @@ export class TeamController {
         data: result
       });
     } catch (error) {
+      next(error);
+    }
+  }
+  
+  static async deleteTeam(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { useCase } = DeleteTeamFactory.create();
+      
+      const result = await useCase.execute({
+        id: parseInt(req.params.id, 10)
+      });
+      
+      res.status(200).json({
+        success: true,
+        message: 'Team deleted successfully'
+      });
+    } catch (error) {
+      if ((error as Error).message.includes('not found')) {
+        return res.status(404).json({
+          success: false,
+          message: (error as Error).message
+        });
+      }
       next(error);
     }
   }

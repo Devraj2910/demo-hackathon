@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { TeamController } from '../controllers/TeamController';
 import { validate } from '../../../../shared/middleware/validation';
 import teamValidation from '../validation/teamValidation';
+import { authenticate, authorize } from '../../../login/presentation/middleware/authMiddleware';
 
 const router = Router();
 
@@ -9,9 +10,12 @@ const router = Router();
 router.get('/', TeamController.getAllTeams);
 
 // Create a new team route
-router.post('/', validate(teamValidation.createTeam), TeamController.createTeam);
+router.post('/', authenticate,authorize(['admin']), validate(teamValidation.createTeam), TeamController.createTeam);
+
+// Delete a team route
+router.delete('/:id', authenticate,authorize(['admin']), TeamController.deleteTeam);
 
 // Update user team route
-router.post('/update-user-team', TeamController.updateUserTeam);
+router.post('/update-user-team', authenticate,authorize(['admin']), TeamController.updateUserTeam);
 
 export { router as teamRoutes }; 
