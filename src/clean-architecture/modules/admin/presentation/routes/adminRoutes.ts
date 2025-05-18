@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { AdminController } from '../controllers/AdminController';
-import { processUserRequestSchema, changeUserTeamSchema } from '../validation/AdminValidation';
+import { processUserRequestSchema, changeUserTeamSchema, changeUserRoleSchema } from '../validation/AdminValidation';
 import { validate } from '../../../login/presentation/middleware/validationMiddleware';
 import { authenticate } from '../../../login/presentation/middleware/authMiddleware';
 import { authorize } from '../../../login/presentation/middleware/authMiddleware';
@@ -21,5 +21,8 @@ router.get('/teams/with-effective-users', AdminController.getTeamsWithEffectiveU
 
 // Change a user's team
 router.post('/users/change-team', validate(changeUserTeamSchema), AdminController.changeUserTeam);
+
+// Change a user's role
+router.post('/users/change-role', validate(changeUserRoleSchema), AdminController.changeUserRole);
 
 export default router;

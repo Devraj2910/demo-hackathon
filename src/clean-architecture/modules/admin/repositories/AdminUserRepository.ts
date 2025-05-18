@@ -27,4 +27,19 @@ export interface AdminUserRepository {
    * @returns Promise containing the updated User entity
    */
   updateUserPermissionStatus(userId: string, status: string): Promise<User>;
+  
+  /**
+   * Update a user's role
+   * @param userId The ID of the user to update
+   * @param newRole The new role to assign to the user
+   * @returns Promise containing the updated User entity
+   */
+  changeUserRole(userId: string, newRole: string): Promise<User>;
+  
+  /**
+   * Find a user by ID
+   * @param userId The ID of the user to find
+   * @returns Promise containing the User entity if found, or null
+   */
+  findById(userId: string): Promise<User | null>;
 } 

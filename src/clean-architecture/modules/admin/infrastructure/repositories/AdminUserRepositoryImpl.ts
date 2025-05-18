@@ -112,4 +112,44 @@ export class AdminUserRepositoryImpl implements AdminUserRepository {
     
     return AdminUserMapper.toDomain(result[0]);
   }
+  
+  async findById(userId: string): Promise<User | null> {
+    const query = `
+      SELECT * FROM users 
+      WHERE id = $1 AND permission = 'approved'
+      LIMIT 1
+    `;
+    
+    const result = await this.dbService.query<UserRecord>(query, [userId]);
+    
+    if (result.length === 0) {
+      return null;
+    }
+    
+    return AdminUserMapper.toDomain(result[0]);
+  }
+  
+  async changeUserRole(userId: string, newRole: string): Promise<User> {
+    // Validate role
+    const validRoles = ['user', 'admin', 'tech-lead'];
+    if (!validRoles.includes(newRole)) {
+      throw new Error(`Invalid role. Must be one of: ${validRoles.join(', ')}`);
+    }
+    
+    const query = `
+      UPDATE users
+      SET role = $1,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2 AND permission = 'approved'
+      RETURNING *
+    `;
+    
+    const result = await this.dbService.query<UserRecord>(query, [newRole, userId]);
+    
+    if (result.length === 0) {
+      throw new Error(`Approved user with ID ${userId} not found`);
+    }
+    
+    return AdminUserMapper.toDomain(result[0]);
+  }
 } 
