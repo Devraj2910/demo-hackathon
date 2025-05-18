@@ -7,7 +7,7 @@ import { authenticate } from '../../../login/presentation/middleware/authMiddlew
 const router = Router();
 
 // All analytics routes require authentication
-router.use(authenticate);
+// router.use(authenticate);
 
 // Single endpoint for the dashboard that contains all analytics
 router.get(

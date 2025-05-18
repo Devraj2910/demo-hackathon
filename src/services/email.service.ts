@@ -3,10 +3,17 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+interface Attachment {
+  filename: string;
+  content: Buffer | string;
+  contentType: string;
+}
+
 interface EmailOptions {
   to: string;
   subject: string;
   html: string;
+  attachments?: Attachment[];
 }
 
 export class EmailService {
@@ -38,23 +45,39 @@ export class EmailService {
     const fromName = process.env.EMAIL_FROM_NAME || 'Recognition App';
 
     try {
-      const request = this.mailjet.post('send', { version: 'v3.1' }).request({
-        Messages: [
+      const message: any = {
+        From: {
+          Email: fromEmail,
+          Name: fromName
+        },
+        To: [
           {
-            From: {
-              Email: fromEmail,
-              Name: fromName
-            },
-            To: [
-              {
-                Email: options.to,
-                Name: options.to.split('@')[0] // Use part before @ as name
-              }
-            ],
-            Subject: options.subject,
-            HTMLPart: options.html
+            Email: options.to,
+            Name: options.to.split('@')[0] // Use part before @ as name
           }
-        ]
+        ],
+        Subject: options.subject,
+        HTMLPart: options.html
+      };
+
+      // Add attachments if provided
+      if (options.attachments && options.attachments.length > 0) {
+        message.Attachments = options.attachments.map(attachment => {
+          // Convert Buffer to Base64 if needed
+          const content = Buffer.isBuffer(attachment.content)
+            ? attachment.content.toString('base64')
+            : attachment.content;
+            
+          return {
+            ContentType: attachment.contentType,
+            Filename: attachment.filename,
+            Base64Content: content
+          };
+        });
+      }
+
+      const request = this.mailjet.post('send', { version: 'v3.1' }).request({
+        Messages: [message]
       });
 
       const result = await request;

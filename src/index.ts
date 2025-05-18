@@ -12,6 +12,8 @@ import {
   errorHandler,
   notFoundHandler,
 } from "./clean-architecture/shared/errors";
+import weeklyCrownRoutes from './clean-architecture/modules/weeklyCrown/presentation/routes/weeklyCrownRoutes';
+import { SchedulerService } from './clean-architecture/modules/weeklyCrown/infrastructure/services/SchedulerService';
 
 // Load environment variables
 dotenv.config();
@@ -48,6 +50,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/teams", teamRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/weeklycrown", weeklyCrownRoutes);
 
 // Health check endpoint
 app.use("/api/health", async (req: Request, res: Response) => {
@@ -66,49 +69,19 @@ app.use(notFoundHandler);
 // Global error handling middleware
 app.use(errorHandler);
 
-// Test database connection and start server only if successful
-async function startServer() {
+// Initialize the WeeklyCrown scheduler when the app starts
+const initializeSchedulers = () => {
   try {
-    // Test database connection
-    const isConnected = await dbService.testConnection();
-
-    if (!isConnected) {
-      console.error(
-        "Failed to connect to the database. Server will not start."
-      );
-      process.exit(1);
-    }
-
-    // Start server if database connection is successful
-    const server = app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log(`Health check available at: ${process.env.HOST}/health`);
-    });
-
-    // Handle graceful shutdown
-    process.on("SIGTERM", () => shutdown(server));
-    process.on("SIGINT", () => shutdown(server));
+    const scheduler = SchedulerService.getInstance();
+    scheduler.startScheduler();
+    console.log('🔄 WeeklyCrown scheduler initialized');
   } catch (error) {
-    console.error("Error starting server:", error);
-    process.exit(1);
+    console.error('❌ Failed to initialize WeeklyCrown scheduler:', error);
   }
-}
+};
 
-async function shutdown(server: any) {
-  console.log("Shutting down server...");
-  server.close(async () => {
-    console.log("HTTP server closed.");
-    try {
-      // Close database connections
-      await dbService.disconnect();
-      console.log("Database connections closed.");
-      process.exit(0);
-    } catch (error) {
-      console.error("Error during shutdown:", error);
-      process.exit(1);
-    }
-  });
-}
-
-// Start the server
-startServer();
+// Setup server
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  initializeSchedulers();
+});
