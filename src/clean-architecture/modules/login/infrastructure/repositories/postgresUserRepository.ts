@@ -124,7 +124,7 @@ export class PostgresUserRepository implements UserRepository {
   async existsByEmail(email: string): Promise<boolean> {
     const query = `
       SELECT EXISTS(
-        SELECT 1 FROM users WHERE email = $1 AND permission is not "declined"
+        SELECT 1 FROM users WHERE email = $1 AND permission != 'declined'
       ) as exists
     `;
     

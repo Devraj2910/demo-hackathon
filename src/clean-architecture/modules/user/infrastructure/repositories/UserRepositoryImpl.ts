@@ -43,7 +43,7 @@ export class UserRepositoryImpl implements UserRepository {
       WHERE 
         email ILIKE $1 OR 
         first_name ILIKE $1 OR 
-        last_name ILIKE $1 AND permission = "approved"
+        last_name ILIKE $1 AND permission = 'approved'
       ORDER BY first_name, last_name
     `;
     
@@ -58,7 +58,7 @@ export class UserRepositoryImpl implements UserRepository {
    * @returns The User entity if found, or null
    */
   async findById(id: string): Promise<User | null> {
-    const query = 'SELECT * FROM users WHERE id = $1 AND permission = "approved"';
+    const query = "SELECT * FROM users WHERE id = $1 AND permission = 'approved'";
     const result: QueryResult<UserRecord> = await this.dbPool.query(query, [id]);
     
     if (result.rows.length === 0) {
