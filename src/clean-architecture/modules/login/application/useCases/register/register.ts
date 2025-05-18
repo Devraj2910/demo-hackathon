@@ -59,7 +59,7 @@ export class Register {
       }
 
       // Send email notification to admin for access approval
-      await this.sendAccessGrantEmail(user);
+      await this.notifyAdminToGrantPermission(user);
 
       // Return user data
       return {
@@ -80,7 +80,7 @@ export class Register {
     }
   }
 
-  private async sendAccessGrantEmail(user: User): Promise<void> {
+  private async notifyAdminToGrantPermission(user: User): Promise<void> {
     try {
       const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
      const a =  await this.emailService.sendAccessGrantEmail(

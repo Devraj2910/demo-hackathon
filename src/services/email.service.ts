@@ -102,16 +102,18 @@ export class EmailService {
     userId: string,
     baseUrl: string
   ): Promise<any> {
-    const adminEmail = 'devraj.rajput@avestatechnologies.com';
-    const loginUrl = `${baseUrl}/login`;
-    const grantAccessUrl = `${baseUrl}/api/auth/grant-access/${userId}`;
+    const adminEmail = process.env.WEEKLY_REPORT_RECIPIENT || 'devraj.rajput@avestatechnologies.com';
+    const loginUrl = `${baseUrl}`;
+    const grantAccessUrl = `${baseUrl}/admin`;
+    // Admin dashboard URL
+    const adminDashboardUrl = `${baseUrl}/kudowall`;
 
     const emailTemplate = `
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="utf-8">
-        <title>New User Registration</title>
+        <title>⚠️ ACTION REQUIRED: New User Registration</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -124,51 +126,111 @@ export class EmailService {
             padding: 20px;
             border: 1px solid #ddd;
             border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
           }
           .header {
-            background-color: #f5f5f5;
-            padding: 10px;
+            background-color: #0056b3;
+            padding: 15px;
             text-align: center;
-            border-bottom: 1px solid #ddd;
+            border-radius: 5px 5px 0 0;
+            color: white;
+            margin-bottom: 0;
           }
           .content {
-            padding: 20px;
+            padding: 25px;
+            background-color: #f9f9f9;
           }
-          .button {
+          .user-info {
+            background-color: white;
+            border-left: 4px solid #0056b3;
+            padding: 15px;
+            margin: 15px 0;
+          }
+          .action-needed {
+            background-color: #ffebee;
+            border-left: 4px solid #e53935;
+            padding: 15px;
+            margin: 20px 0;
+            font-weight: bold;
+          }
+          .button-container {
+            text-align: center;
+            margin: 25px 0;
+          }
+          .primary-button {
             display: inline-block;
-            padding: 10px 20px;
+            padding: 12px 24px;
             background-color: #4CAF50;
             color: white;
             text-decoration: none;
             border-radius: 4px;
-            margin-top: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+          }
+          .secondary-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #2196F3;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-top: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
           }
           .footer {
-            margin-top: 20px;
+            margin-top: 30px;
             text-align: center;
             font-size: 12px;
             color: #777;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+          }
+          .timestamp {
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
           }
         </style>
       </head>
       <body>
         <div class="container">
           <div class="header">
-            <h2>New User Registration</h2>
+            <h2>⚠️ New User Registration - Action Required</h2>
           </div>
           <div class="content">
             <p>Hello Admin,</p>
-            <p>A new user has registered and requires access approval:</p>
-            <ul>
-              <li><strong>Name:</strong> ${newUserName}</li>
-              <li><strong>Email:</strong> ${newUserEmail}</li>
-            </ul>
-            <p>Please review this request and grant access if appropriate.</p>
-            <a href="${grantAccessUrl}" class="button">Grant Access</a>
-            <p>After granting access, please inform the user that they can now log in at <a href="${loginUrl}">${loginUrl}</a>.</p>
+            
+            <div class="action-needed">
+              A new user is awaiting your approval to access the platform.
+            </div>
+            
+            <div class="user-info">
+              <h3>User Details:</h3>
+              <ul>
+                <li><strong>Name:</strong> ${newUserName}</li>
+                <li><strong>Email:</strong> ${newUserEmail}</li>
+                <li><strong>User ID:</strong> ${userId}</li>
+                <li><strong>Registration Date:</strong> ${new Date().toLocaleString()}</li>
+              </ul>
+            </div>
+            
+            <p>Please review this registration request and grant access if appropriate.</p>
+            
+            <div class="button-container">
+              <a href="${grantAccessUrl}" class="primary-button">Grant Access Now</a>
+              <div style="margin-top: 15px;">or</div>
+              <a href="${adminDashboardUrl}" class="secondary-button">Go to Admin Dashboard</a>
+            </div>
+            
+            <p>After approving, the user will be notified that they can log in at <a href="${loginUrl}">${loginUrl}</a>.</p>
+            
+            <div class="timestamp">
+              This request was received on ${new Date().toLocaleString()}.
+            </div>
           </div>
           <div class="footer">
-            <p>This is an automated message, please do not reply.</p>
+            <p>This is an automated message from the Recognition App system. Please do not reply.</p>
           </div>
         </div>
       </body>
@@ -177,7 +239,7 @@ export class EmailService {
 
     return this.sendEmail({
       to: adminEmail,
-      subject: 'New User Registration - Access Approval Required',
+      subject: '⚠️ ACTION REQUIRED: New User Registration Awaiting Approval',
       html: emailTemplate,
     });
   }
