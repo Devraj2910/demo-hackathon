@@ -103,7 +103,7 @@ export class AdminController {
   /**
    * Change a user's role
    */
-  static async changeUserRole(req: Request, res: Response): Promise<void> {
+  static async changeUserRole(req: Request, res: Response) {
     try {
       const { userId, newRole } = req.body;
       
