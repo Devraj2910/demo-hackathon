@@ -90,7 +90,7 @@ export class PostgresCardRepository implements CardRepository {
     }
 
     if (filters?.searchText) {
-      conditions.push(`title ILIKE $${queryParams.length + 1} OR content ILIKE $${queryParams.length + 2}`);
+      conditions.push(`title ILIKE $${queryParams.length + 1} OR content ILIKE $${queryParams.length + 1}`);
       queryParams.push(`%${filters.searchText}%`);
     }
     

@@ -29,6 +29,7 @@ export class GetCards {
     if (fromDate) filters.fromDate = new Date(fromDate);
     if (toDate) filters.toDate = new Date(toDate);
     if (title) filters.title = title;
+    if (searchText) filters.searchText = searchText;
     
     // Add pagination
     filters.page = page;

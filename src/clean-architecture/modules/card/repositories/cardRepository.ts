@@ -56,6 +56,7 @@ export interface CardRepository {
     toDate?: Date;
     page?: number;
     limit?: number;
+    searchText?: string;
   }): Promise<PaginatedResult<Card>>;
   
   /**
