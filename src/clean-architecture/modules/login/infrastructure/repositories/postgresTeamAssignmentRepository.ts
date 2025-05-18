@@ -42,29 +42,8 @@ export class PostgresTeamAssignmentRepository implements TeamAssignmentRepositor
     return this.mapToTeamAssignment(rows[0]);
   }
 
-  async getUserTeamAssignments(userId: string): Promise<TeamAssignment[]> {
-    const query = `
-      SELECT * FROM user_team_assignments
-      WHERE user_id = $1
-      AND effective_to IS NULL
-      ORDER BY effective_from DESC
-    `;
-    
-    const rows = await this.dbService.query<TeamAssignmentRow>(query, [userId]);
-    return rows.map(row => this.mapToTeamAssignment(row));
-  }
 
-  async removeUserFromTeam(userId: string, teamId: number): Promise<void> {
-    const now = new Date();
-    
-    const query = `
-      UPDATE user_team_assignments
-      SET effective_to = $1
-      WHERE user_id = $2 AND team_id = $3 AND effective_to IS NULL
-    `;
-    
-    await this.dbService.query(query, [now, userId, teamId]);
-  }
+
 
   private mapToTeamAssignment(row: TeamAssignmentRow): TeamAssignment {
     return {

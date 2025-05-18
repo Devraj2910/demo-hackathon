@@ -53,8 +53,8 @@ export class PostgresAnalyticsRepository implements AnalyticsRepository {
     const query = `
       SELECT u.id, u.first_name, u.last_name, COUNT(*) as card_count
       FROM cards c
-      JOIN users u ON c.created_for = u.id
-      WHERE c.created_at BETWEEN $1 AND $2
+      JOIN users u ON c.created_for = u.id 
+      WHERE c.created_at BETWEEN $1 AND $2 AND u.permission = 'approved'
       GROUP BY u.id, u.first_name, u.last_name
       ORDER BY card_count DESC
       LIMIT 5
@@ -69,7 +69,7 @@ export class PostgresAnalyticsRepository implements AnalyticsRepository {
       SELECT u.id, u.first_name, u.last_name, COUNT(*) as card_count
       FROM cards c
       JOIN users u ON c.user_id = u.id
-      WHERE c.created_at BETWEEN $1 AND $2
+      WHERE c.created_at BETWEEN $1 AND $2 AND u.permission = 'approved'
       GROUP BY u.id, u.first_name, u.last_name
       ORDER BY card_count DESC
       LIMIT 5

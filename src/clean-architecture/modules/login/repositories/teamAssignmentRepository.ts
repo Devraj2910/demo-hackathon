@@ -15,10 +15,8 @@ export interface TeamAssignmentRepository {
   /**
    * Get all team assignments for a user
    */
-  getUserTeamAssignments(userId: string): Promise<TeamAssignment[]>;
   
   /**
    * Remove a user from a team
    */
-  removeUserFromTeam(userId: string, teamId: number): Promise<void>;
 } 

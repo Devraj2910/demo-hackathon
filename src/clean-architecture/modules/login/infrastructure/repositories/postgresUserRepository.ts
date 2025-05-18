@@ -12,6 +12,7 @@ interface UserRow {
   position: string | null;
   created_at: Date;
   updated_at: Date;
+  permission: string;
 }
 
 export class PostgresUserRepository implements UserRepository {
@@ -40,7 +41,7 @@ export class PostgresUserRepository implements UserRepository {
   async findById(id: string): Promise<User | null> {
     const query = `
       SELECT * FROM users 
-      WHERE id = $1
+      WHERE id = $1 AND permission = 'approved'
       LIMIT 1
     `;
     
@@ -123,7 +124,7 @@ export class PostgresUserRepository implements UserRepository {
   async existsByEmail(email: string): Promise<boolean> {
     const query = `
       SELECT EXISTS(
-        SELECT 1 FROM users WHERE email = $1
+        SELECT 1 FROM users WHERE email = $1 AND permission is not "declined"
       ) as exists
     `;
     
@@ -141,7 +142,8 @@ export class PostgresUserRepository implements UserRepository {
       role: row.role,
       position: row.position || undefined,
       createdAt: row.created_at,
-      updatedAt: row.updated_at
+      updatedAt: row.updated_at,
+      permission: row.permission
     };
     
     return User.create(userProps);

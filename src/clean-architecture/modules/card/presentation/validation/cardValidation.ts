@@ -14,6 +14,10 @@ export const addCardSchema = Joi.object({
   createdFor: Joi.string().required().messages({
     'string.empty': 'Created for user ID is required',
     'any.required': 'Created for user ID is required'
+  }),
+  teamId: Joi.string().required().messages({
+    'string.empty': 'Team ID is required',
+    'any.required': 'Team ID is required'
   })
 });
 

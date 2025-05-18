@@ -60,7 +60,8 @@ export class CardController {
         title: req.body.title,
         content: req.body.content,
         createdFor: req.body.createdFor,
-        userId: req.user.userId
+        userId: req.user.userId,
+        teamId: req.body.teamId
       });
       
       res.status(201).json({

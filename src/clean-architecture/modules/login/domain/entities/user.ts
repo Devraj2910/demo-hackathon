@@ -8,6 +8,7 @@ export interface UserProps {
   position?: string;
   createdAt: Date;
   updatedAt: Date;
+  permission?: string;
 }
 
 export class User {
@@ -31,6 +32,7 @@ export class User {
   get position(): string | undefined { return this.props.position; }
   get createdAt(): Date { return this.props.createdAt; }
   get updatedAt(): Date { return this.props.updatedAt; }
+  get permission(): string | undefined { return this.props.permission; }
 
   // Business logic methods
   updateProfile(firstName?: string, lastName?: string, position?: string): void {

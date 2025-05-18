@@ -40,7 +40,8 @@ export class Register {
         role: role || 'user', // Default role is 'user' if not specified
         position,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        permission: 'pending'
       });
 
       // Save user to database

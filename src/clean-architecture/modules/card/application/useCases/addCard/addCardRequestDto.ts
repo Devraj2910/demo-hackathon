@@ -3,4 +3,5 @@ export interface AddCardRequestDto {
   content: string;
   createdFor: string; // User ID for whom the card is created
   userId: string; // User ID of the creator (from authentication)
+  teamId: string; // Team ID of the creator (from authentication)
 } 

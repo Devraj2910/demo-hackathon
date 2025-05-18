@@ -6,6 +6,7 @@ import { cardRoutes } from "./clean-architecture/modules/card/presentation/route
 import { userRoutes } from "./clean-architecture/modules/user/presentation/routes/userRoutes";
 import { teamRoutes } from "./clean-architecture/modules/team/presentation/routes/teamRoutes";
 import { analyticsRoutes } from "./clean-architecture/modules/analytics/presentation/routes/analyticsRoutes";
+import { createAdminRouter } from "./clean-architecture/modules/admin/presentation/routes/adminRoutes";
 import { DatabaseService } from "./services/database.service";
 import {
   errorHandler,
@@ -46,6 +47,7 @@ app.use("/api/cards", cardRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/teams", teamRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/admin", createAdminRouter(dbService.getPool()));
 
 // Health check endpoint
 app.use("/api/health", async (req: Request, res: Response) => {

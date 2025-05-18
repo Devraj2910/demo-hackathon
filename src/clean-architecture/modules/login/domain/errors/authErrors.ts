@@ -19,6 +19,13 @@ export class UserNotFoundError extends AuthenticationError {
   }
 }
 
+export class UserNotApprovedError extends AuthenticationError {
+  constructor(message: string = 'User not approved') {
+    super(message);
+    this.name = 'UserNotApprovedError';
+  }
+}
+
 export class EmailAlreadyExistsError extends Error {
   constructor(message: string = 'Email already exists') {
     super(message);

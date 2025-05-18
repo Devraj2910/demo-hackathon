@@ -1,4 +1,4 @@
-import { InvalidCredentialsError, UserNotFoundError } from "../../../domain/errors/authErrors";
+import { InvalidCredentialsError, UserNotApprovedError, UserNotFoundError } from "../../../domain/errors/authErrors";
 import { AuthService } from "../../../domain/services/authService";
 import { UserRepository } from "../../../repositories/userRepository";
 import { LoginRequestDto } from "./loginRequestDto";
@@ -17,6 +17,10 @@ export class Login {
     const user = await this.userRepository.findByEmail(email);
     if (!user) {
       throw new UserNotFoundError();
+    }
+
+    if (user.permission !== 'approved') {
+      throw new UserNotApprovedError();
     }
 
     // Verify password

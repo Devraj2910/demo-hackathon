@@ -21,5 +21,4 @@ export interface UserRepository {
    * @param email The user email
    * @returns Promise containing the user if found, or null
    */
-  findByEmail(email: string): Promise<User | null>;
 } 
